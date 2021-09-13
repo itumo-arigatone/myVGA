@@ -121,9 +121,9 @@ ISR(TIMER2_OVF_vect) {
       "     lds r16, %[timer0]    \n\t" //
       "     subi r16, %[tsync]    \n\t" //
       "     andi r16, 7           \n\t" //
-      "     call TL               \n\t" //
+      "     call TL               \n\t" //絶対アドレス TLを指定
       "TL:                        \n\t" //
-      "     pop r31               \n\t" //
+      "     pop r31               \n\t" //1バイトの標準I/Oレジスタの内容を汎用レジスタに転送する。
       "     pop r30               \n\t" //
       "     adiw r30, (LW-TL-5)   \n\t" //
       "     add r30, r16          \n\t" //
@@ -161,12 +161,12 @@ ISR(TIMER2_OVF_vect) {
     unrolled loop of 30 iterations.
     */
     asm volatile (
-      "    ldi r20, 4       \n\t" //const for <<2bit
+      "    ldi r20, 4       \n\t" //const for <<2bit r20に定数4を転送
       ".rept 30             \n\t" //output 4 pixels for each iteration
-      "    ld r16, Z+       \n\t" //
-      "    out %[port], r16 \n\t" //write pixel 1
-      "    mul r16, r20     \n\t" //<<2
-      "    out %[port], r0  \n\t" //write pixel 2
+      "    ld r16, Z+       \n\t" // １バイトのデータメモリを汎用レジスタに転送。
+      "    out %[port], r16 \n\t" //write pixel 1 out I,r 1バイトの汎用レジスタの内容を標準I/Oレジスタに転送する。
+      "    mul r16, r20     \n\t" //<<2 汎用レジスタ間でに乗算させる。
+      "    out %[port], r0  \n\t" //write pixel 2 
       "    mul r0, r20      \n\t" //<<4
       "    out %[port], r0  \n\t" //write pixel 3
       "    mul r0, r20      \n\t" //<<6
@@ -176,7 +176,7 @@ ISR(TIMER2_OVF_vect) {
       "    ldi r16, 0       \n\t" //
       "    out %[port], r16 \n\t" //write black for next pixels
     :
-    : [port] "I" (_SFR_IO_ADDR(PORTD)),
+    : [port] "I" (_SFR_IO_ADDR(PORTD)), // ポートD (デジタルピン0から7)
       "z" "I" (/*rline*/(byte*)vgaxfb + rlinecnt*VGAX_BWIDTH)
     : "r16", "r17", "r20", "r21", "memory");
 
