@@ -1,3 +1,7 @@
+// 1pxの色を2bitで表現している つまり一回の通信で4px分のデータを送信することができる。
+// 1pxの色を3bitで表現するようにすればいいってことだよなぁ！？これ、1.5倍メモリを消費するってことか
+// 白111　赤100 緑 010 青 001
+// 前か後の2bitは捨てるしかないかな？ 2pxしか送れない 00100111 このデータを送ったとして赤白って2pxのデータが渡せる。
 #define HSYNCPIN 3
 #define VSYNCPIN 9
 #define COLORRED 6
@@ -16,6 +20,7 @@
 #define SKIPLINES 40
 
 //data size=512 bytes
+// 255が1byteの最大
 const unsigned char img_mariomask_data[IMG_MARIOMASK_SPRITES_CNT][IMG_MARIOMASK_HEIGHT][IMG_MARIOMASK_BWIDTH] PROGMEM={
 { { 255, 255, 255, 255, }, { 255, 192,   3, 255, }, { 255,   0,   0,  63, }, { 252,   0,   0,  15, }, { 252,   0,   0,  63, }, { 240,   0,   0,  15, }, { 240,   0,   0,  15, }, { 252,   0,   0,  63, }, { 255,   0,   0, 255, }, { 252,   0,   3, 255, }, { 240,   0,   0, 255, }, { 240,   0,   0, 255, }, { 252,   0,   0, 255, }, { 252,   0,   3, 255, }, { 255,   0,   3, 255, }, { 255,   0,   3, 255, }, },
 { { 255, 255, 255, 255, }, { 255, 192,   3, 255, }, { 255,   0,   0,  63, }, { 252,   0,   0,  15, }, { 252,   0,   0,  63, }, { 240,   0,   0,  15, }, { 240,   0,   0,  15, }, { 252,   0,   0,  63, }, { 255,   0,   0, 255, }, { 252,   0,   0,  63, }, { 252,   0,   0,  15, }, { 240,   0,   0,  15, }, { 240,   0,   0,  63, }, { 252,   0,   0,  63, }, { 252,   0,   0,  63, }, { 255,   3, 192, 255, }, },
@@ -160,14 +165,17 @@ ISR(TIMER2_OVF_vect) {
     Instead of using a loop i use the .rept assembler directive to generate an 
     unrolled loop of 30 iterations.
     */
+    Serial.println("--------------");
+    Serial.println((byte*)vgaxfb);
+    Serial.println(rlinecnt);
     asm volatile (
       "    ldi r20, 4       \n\t" //const for <<2bit r20に定数4を転送
       ".rept 30             \n\t" //output 4 pixels for each iteration
-      "    ld r16, Z+       \n\t" // １バイトのデータメモリを汎用レジスタに転送。
+      "    ld r16, Z+       \n\t" // １バイトのデータメモリを汎用レジスタに転送。 事後増加付きZﾚｼﾞｽﾀ間接での取得 	Rd ← (Z), Z ← Z + 1
       "    out %[port], r16 \n\t" //write pixel 1 out I,r 1バイトの汎用レジスタの内容を標準I/Oレジスタに転送する。
-      "    mul r16, r20     \n\t" //<<2 汎用レジスタ間でに乗算させる。
-      "    out %[port], r0  \n\t" //write pixel 2 
-      "    mul r0, r20      \n\t" //<<4
+      "    mul r16, r20     \n\t" //<<2 汎用レジスタ間でに乗算させる。r16*r20ってこと？　r16*4
+      "    out %[port], r0  \n\t" //write pixel 2
+      "    mul r0, r20      \n\t" //<<4 r0*4
       "    out %[port], r0  \n\t" //write pixel 3
       "    mul r0, r20      \n\t" //<<6
       "    out %[port], r0  \n\t" //write pixel 4
@@ -176,9 +184,11 @@ ISR(TIMER2_OVF_vect) {
       "    ldi r16, 0       \n\t" //
       "    out %[port], r16 \n\t" //write black for next pixels
     :
-    : [port] "I" (_SFR_IO_ADDR(PORTD)), // ポートD (デジタルピン0から7)
-      "z" "I" (/*rline*/(byte*)vgaxfb + rlinecnt*VGAX_BWIDTH)
+    : [port] "I" (_SFR_IO_ADDR(PORTD)), // ポートD (デジタルピン0から7) // 入力オペランド　[マクロ名2] "制約" (変数名2)
+      "z" "I" (/*rline*/(byte*)vgaxfb + rlinecnt*VGAX_BWIDTH) // vgaxfb[VGAX_HEIGHT(60)*VGAX_BWIDTH(30)], rlinecnt*VGAX_BWIDTH 
     : "r16", "r17", "r20", "r21", "memory");
+    // VGAX_BWIDTH=30
+    // rlinecntは0から増えていく？
 
     //increment framebuffer line counter after 6 VGA lines
     #if defined(__AVR_ATmega2560__) && defined(ATMEGA2560_MAXRES)
