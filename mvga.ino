@@ -119,19 +119,20 @@ ISR(TIMER2_OVF_vect) {
     //interrupt jitter fix (needed to keep signal stable)
     //code from https://github.com/cnlohr/avrcraft/tree/master/terminal
     //modified from 4 nop align to 8 nop align
+    // Zはメモリの番地指定に使用できる。
     #define DEJITTER_OFFSET 1
     #define DEJITTER_SYNC -2
     asm volatile(
-      "     st Z, r16             \n\t" //
-      "     lds r16, %[timer0]    \n\t" //
-      "     subi r16, %[tsync]    \n\t" //
-      "     andi r16, 7           \n\t" //
-      "     call TL               \n\t" //絶対アドレス TLを指定
+      "     st Z, r16             \n\t" // レジスタからアドレスへの代入 z　Pointer register pair Z　z (r31:r30)
+      "     lds r16, %[timer0]    \n\t" //データ転送　１バイトの拡張レジスタから汎用レジスタへ転送する。
+      "     subi r16, %[tsync]    \n\t" // 汎用レジスタにrとM(定数)おいて引き算する。定数は0から255になる。
+      "     andi r16, 7           \n\t" // レジスタと定数の論理積
+      "     call TL               \n\t" // 絶対アドレス TLを指定
       "TL:                        \n\t" //
-      "     pop r31               \n\t" //1バイトの標準I/Oレジスタの内容を汎用レジスタに転送する。
+      "     pop r31               \n\t" //1バイトの標準I/Oレジスタの内容を汎用レジスタに転送する。スタックから Rd に復帰
       "     pop r30               \n\t" //
       "     adiw r30, (LW-TL-5)   \n\t" //
-      "     add r30, r16          \n\t" //
+      "     add r30, r16          \n\t" // レジスタ間加算
       "   adc r31, __zero_reg__ \n\t" //
       "     ijmp                  \n\t" //
       "LW:                        \n\t" //
@@ -165,15 +166,18 @@ ISR(TIMER2_OVF_vect) {
     Instead of using a loop i use the .rept assembler directive to generate an 
     unrolled loop of 30 iterations.
     */
+    // r20とかには1byte入る
     Serial.println("--------------");
     Serial.println((byte*)vgaxfb);
     Serial.println(rlinecnt);
     asm volatile (
-      "    ldi r20, 4       \n\t" //const for <<2bit r20に定数4を転送
-      ".rept 30             \n\t" //output 4 pixels for each iteration
-      "    ld r16, Z+       \n\t" // １バイトのデータメモリを汎用レジスタに転送。 事後増加付きZﾚｼﾞｽﾀ間接での取得 	Rd ← (Z), Z ← Z + 1
+      "    ldi r20, 4       \n\t" //const for <<2bit r20に定数4を転送 
+      ".rept 30             \n\t" //output 4 pixels for each iteration 30*4=120
+      "    ld r16, Z+       \n\t" // ld:１バイトのデータメモリを汎用レジスタに転送。 
+                                  // Zはメモリの番地を指定している？
+                                  // 事後増加付きZﾚｼﾞｽﾀ間接での取得 	Rd ← (Z), Z ← Z + 1
       "    out %[port], r16 \n\t" //write pixel 1 out I,r 1バイトの汎用レジスタの内容を標準I/Oレジスタに転送する。
-      "    mul r16, r20     \n\t" //<<2 汎用レジスタ間でに乗算させる。r16*r20ってこと？　r16*4
+      "    mul r16, r20     \n\t" //<<2 汎用レジスタ間でに乗算させる。r16*r20ってこと？　r16*4 次のループで4px進めないと上書きしちゃうからだ！！
       "    out %[port], r0  \n\t" //write pixel 2
       "    mul r0, r20      \n\t" //<<4 r0*4
       "    out %[port], r0  \n\t" //write pixel 3
@@ -271,7 +275,7 @@ void blitwmask(byte *src, byte *mask, byte swidth, byte sheight, char dx, char d
       while (sw--) {
         if (ldx>-1 && ldx<VGAX_WIDTH) {
           //get mask bit
-          byte m=pgm_read_byte(maskline + (sx>>2));
+          byte m=pgm_read_byte(maskline + (sx>>2));// 配列の数字を1byteずつ読み取っているっぽい
           byte p=pgm_read_byte(srcline  + (sx>>2));
           //get sprite pixel and mask
           byte sbitpos=6-(sx & 3)*2;
