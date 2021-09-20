@@ -232,7 +232,6 @@ function fillCanvas() {
 
 function outputArray() {
   // 1ピクセルの中心の座標を取得
-  let result = "";
   let w = 0;
   let h = 0;
   let arr = [];
@@ -246,4 +245,38 @@ function outputArray() {
     w = 0;
     h += 13;
   }
+  let text = "{\n"
+  let result = createStringArray(arr);
+  for (let i=1; i<result.length; i++) {
+    text += parseInt(result[i], 2) + ",";
+    text += i%canvas_width==0?"\n":"";
+  }
+  text += "\n}"
+  document.getElementById("output").value = text;
+}
+
+function createStringArray(arr) {
+  let red = false;
+  let green = false;
+  let blue = false;
+  let a = "";
+  let b = 1;
+  let result = [];
+  for (let i=0; i<arr.length; i++) {
+    red = arr[i][0]!=0?true:false;
+    green = arr[i][1]!=0?true:false;
+    blue = arr[i][2]!=0?true:false;
+    a += red?"1":"0";
+    a += green?"1":"0";
+    a += blue?"1":"0";
+
+    b++;
+    if (b === 3) {
+      a += "00"
+      result.push(a);
+      a = "";
+      b = 1;
+    }
+  }
+  return result;
 }
