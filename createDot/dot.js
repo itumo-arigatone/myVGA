@@ -5,6 +5,25 @@ var canvas_magnification = 25;    // 表示倍率
 var canvas_width  = 72;           // キャンバス横幅   
 var canvas_height = 50;           // キャンバス縦幅 
 var canvas_mousedown_flg = false; // マウスダウンフラグ
+
+///// イベント
+    
+window.onload = function (){
+  // キャンバス
+  canvas = document.getElementById("MyCanvas");
+     
+  canvas.width  = canvas_width * canvas_magnification;
+  canvas.height = canvas_height * canvas_magnification;    
+  
+  ctx = canvas.getContext("2d");
+  
+  canvas.addEventListener('mousedown', OnMousedown);
+  canvas.addEventListener('mousemove', OnMousemove);
+  canvas.addEventListener('mouseup', OnMouseup);
+  window.addEventListener('mouseup', OnMouseup);
+  
+  init_canvas();              
+}
  
 ///// 内部関数
  
@@ -23,7 +42,7 @@ function Point2BlockName(x,y){
   var row = 'R' + (Math.floor(y / canvas_magnification)+1);
   
   document.getElementById('msg3').innerHTML = 'セル番号　' +row + ' x ' + col;
-}  
+}
  
 // キャンバスに罫線を描画する
 function drawRule(){
@@ -51,25 +70,6 @@ function drawRule(){
   }
  
   ctx.stroke();  
-}
- 
-///// イベント
-    
-window.onload = function (){
-  // キャンバス
-  canvas = document.getElementById("MyCanvas");
-     
-  canvas.width  = canvas_width * canvas_magnification;
-  canvas.height = canvas_height * canvas_magnification;    
-  
-  ctx = canvas.getContext("2d");
-  
-  canvas.addEventListener('mousedown', OnMousedown);
-  canvas.addEventListener('mousemove', OnMousemove);
-  canvas.addEventListener('mouseup', OnMouseup);
-  window.addEventListener('mouseup', OnMouseup);
-  
-  init_canvas();              
 }
  
 function OnMousedown(e) {
@@ -147,7 +147,6 @@ function OnMousemove(e) {
           break ;
         }
       }
-      console.log(checkColor);
       let color;
       switch (checkColor) {
         case "red":
@@ -190,10 +189,6 @@ function OnMouseup(e) {
   canvas_mousedown_flg = false; 
 }
 
-function outputArray() {
-
-}
-
 function fillCanvas() {
   let elements = document.getElementsByName("color");
   let checkColor;
@@ -233,4 +228,22 @@ function fillCanvas() {
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   drawRule();
+}
+
+function outputArray() {
+  // 1ピクセルの中心の座標を取得
+  let result = "";
+  let w = 0;
+  let h = 0;
+  let arr = [];
+  for (let i=0; i<canvas_height; i++) {
+    h += 12;
+    for (let j=0; j<canvas_width; j++) {
+      w += 12;
+      arr.push(ctx.getImageData(w, h, 1, 1).data);
+      w += 13;
+    }
+    w = 0;
+    h += 13;
+  }
 }
