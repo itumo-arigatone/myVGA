@@ -40,7 +40,6 @@ function drawRule(){
   }
   
   ctx.beginPath();
-  
 
   for (var i = 0; i < canvas_width+1; i++) {
     ctx.moveTo((i*canvas_magnification),0);
@@ -48,7 +47,7 @@ function drawRule(){
   }
   for (var i = 0; i < canvas_height+1; i++) {
     ctx.moveTo(0,(i*canvas_magnification));
-    ctx.lineTo(canvas.height,(i*canvas_magnification));
+    ctx.lineTo(canvas.width,(i*canvas_magnification));
   }
  
   ctx.stroke();  
@@ -81,8 +80,44 @@ function OnMousedown(e) {
   // 塗りつぶし
   var col = Math.floor(mouseX / canvas_magnification);
   var row = Math.floor(mouseY / canvas_magnification);
-  
-  ctx.fillStyle = "rgb(200, 0, 0)";  
+
+  let elements = document.getElementsByName("color");
+  let checkColor;
+  for ( let checked="", i=elements.length; i--; ) {
+    if ( elements[i].checked ) {
+      checkColor = elements[i].value ;
+      break ;
+    }
+  }
+
+  let color;
+  switch (checkColor) {
+    case "red":
+      color =  "rgb(255, 0, 0)";
+      break;
+    case "green":
+      color =  "rgb(0, 255, 0)";
+      break;
+    case "blue":
+      color =  "rgb(0, 0, 255)";
+      break;
+    case "yellow":
+      color =  "rgb(255, 255, 0)";
+      break;
+    case "light_blue":
+      color =  "rgb(0, 255, 255)";
+      break;
+    case "pink":
+      color =  "rgb(255, 0, 255)";
+      break;
+    case "black":
+      color =  "rgb(0, 0, 0)";
+      break;
+    case "white":
+      color =  "rgb(255, 255, 255)";
+      break;
+  }
+  ctx.fillStyle = color;
   ctx.fillRect(col * canvas_magnification, row * canvas_magnification,
                canvas_magnification, canvas_magnification);
   
@@ -103,8 +138,44 @@ function OnMousemove(e) {
       // 塗りつぶし
       var col = Math.floor(mouseX / canvas_magnification);
       var row = Math.floor(mouseY / canvas_magnification);
-      
-      ctx.fillStyle = "rgb(200, 0, 0)";  
+
+      let elements = document.getElementsByName("color");
+      let checkColor;
+      for ( let checked="", i=elements.length; i--; ) {
+        if ( elements[i].checked ) {
+          checkColor = elements[i].value ;
+          break ;
+        }
+      }
+      console.log(checkColor);
+      let color;
+      switch (checkColor) {
+        case "red":
+          color =  "rgb(255, 0, 0)";
+          break;
+        case "green":
+          color =  "rgb(0, 255, 0)";
+          break;
+        case "blue":
+          color =  "rgb(0, 0, 255)";
+          break;
+        case "yellow":
+          color =  "rgb(255, 255, 0)";
+          break;
+        case "light_blue":
+          color =  "rgb(0, 255, 255)";
+          break;
+        case "pink":
+          color =  "rgb(255, 0, 255)";
+          break;
+        case "black":
+          color =  "rgb(0, 0, 0)";
+          break;
+        case "white":
+          color =  "rgb(255, 255, 255)";
+          break;
+      }
+      ctx.fillStyle = color;
       ctx.fillRect(col * canvas_magnification, row * canvas_magnification, 
                    canvas_magnification, canvas_magnification);
       
@@ -117,4 +188,8 @@ function OnMousemove(e) {
  
 function OnMouseup(e) {
   canvas_mousedown_flg = false; 
-}    
+}
+
+function outputArray() {
+
+}
