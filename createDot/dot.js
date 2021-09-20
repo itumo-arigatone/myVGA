@@ -249,9 +249,9 @@ function outputArray() {
   let result = createStringArray(arr);
   for (let i=1; i<result.length; i++) {
     text += parseInt(result[i], 2) + ",";
-    text += i%canvas_width==0?"\n":"";
+    text += i%36==0?"\n":"";
   }
-  text += "\n}"
+  text += "\n};"
   document.getElementById("output").value = text;
 }
 
