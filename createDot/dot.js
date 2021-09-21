@@ -280,3 +280,64 @@ function createStringArray(arr) {
   }
   return result;
 }
+
+function drawArray() {
+  let text = document.getElementById("draw").value;
+  text = text.replace("{", "[");
+  text = text.replace(/,\n};|};/, "]");
+
+  let arr = JSON.parse(text);
+  let color;
+  let w = 0;
+  let h = 0;
+  for (i=0;i<arr.length;i++) {
+    if (w > 35) {
+      w = 0;
+      h++;
+    }
+    let str = arr[i].toString(2);
+    let bit = str.match(/.{3}/g)
+    
+    color_f = bitColorCheck(bit[0]);
+    color_b = bitColorCheck(bit[1]);
+    // front
+    ctx.fillStyle = color_f;
+    ctx.fillRect(canvas_magnification*w*2, canvas_magnification*h, canvas_magnification, canvas_magnification);
+    // back
+    ctx.fillStyle = color_b;
+    ctx.fillRect(25+(canvas_magnification*w*2), canvas_magnification*h, canvas_magnification, canvas_magnification);
+    w++;
+  };
+  drawRule();
+}
+
+function bitColorCheck(bit) {
+  let color;
+  switch(bit) {
+    case "100":
+      color = "rgb(255, 0, 0)";
+      break;
+    case "010":
+      color = "rgb(0, 255, 0)";
+      break;
+    case "001":
+      color = "rgb(0, 0, 255)";
+      break;
+    case "110":
+      color = "rgb(255, 255, 0)";
+      break;
+    case "011":
+      color = "rgb(0, 255, 255)";
+      break;
+    case "101":
+      color = "rgb(255, 0, 255)";
+      break;
+    case "111":
+      color = "rgb(255, 255, 255)";
+      break;
+    case "000":
+      color = "rgb(0, 0, 0)";
+      break;
+  }
+  return color;
+}

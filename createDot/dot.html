@@ -5,32 +5,44 @@
 <script src="./dot.js"></script> 
 </head>
 <body>
-<button onclick="init_canvas();">clear</button>
-<div id="select_color">
-    <input type="radio" id="red" name="color" value="red">
-    <label for="">red</label>
-    <input type="radio" id="green" name="color" value="green">
-    <label for="">green</label>
-    <input type="radio" id="blue" name="color" value="blue">
-    <label for="">blue</label>
-    <input type="radio" id="yellow" name="color" value="yellow">
-    <label for="">yellow</label>
-    <input type="radio" id="light_blue" name="color" value="light_blue">
-    <label for="">light_blue</label>
-    <input type="radio" id="pink" name="color" value="pink">
-    <label for="">pink</label>
-    <input type="radio" id="pink" name="color" value="black">
-    <label for="">black</label>
-    <input type="radio" id="pink" name="color" value="white">
-    <label for="">white</label>
-</div>
-<button onclick="fillCanvas();">fill canvas</button>
-<p></p>
-<canvas id="MyCanvas" style="paddling:0;"></canvas>
-<div id="msg1"></div>
-<div id="msg2"></div>
-<div id="msg3"></div> 
-<button onclick="outputArray();">output</button>
-<textarea id="output" style="width:500px; height: 500px;"></textarea>
-</body>
+    <div>
+        <div>input pixel data you want draw</div>
+        <textarea id="draw" style="width:500px; height: 500px;"></textarea>
+        <div>
+            <button onclick="drawArray();">draw</button>
+        </div>
+    </div>
+    <button onclick="init_canvas();">clear</button>
+    <div id="select_color">
+        <input type="radio" id="red" name="color" value="red">
+        <label for="">red</label>
+        <input type="radio" id="green" name="color" value="green">
+        <label for="">green</label>
+        <input type="radio" id="blue" name="color" value="blue">
+        <label for="">blue</label>
+        <input type="radio" id="yellow" name="color" value="yellow">
+        <label for="">yellow</label>
+        <input type="radio" id="light_blue" name="color" value="light_blue">
+        <label for="">light_blue</label>
+        <input type="radio" id="pink" name="color" value="pink">
+        <label for="">pink</label>
+        <input type="radio" id="pink" name="color" value="black">
+        <label for="">black</label>
+        <input type="radio" id="pink" name="color" value="white">
+        <label for="">white</label>
+    </div>
+    <button onclick="fillCanvas();">fill canvas</button>
+    <p></p>
+    <canvas id="MyCanvas" style="paddling:0;"></canvas>
+    <div id="msg1"></div>
+    <div id="msg2"></div>
+    <div id="msg3"></div> 
+    <div>
+        <button onclick="outputArray();">output</button>
+    </div>
+    <div>
+        <div>output result</div>
+        <textarea id="output" style="width:500px; height: 500px;"></textarea>
+    </div>
+    </body>
 </html> 
