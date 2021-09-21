@@ -247,11 +247,11 @@ function outputArray() {
   }
   let text = "{\n"
   let result = createStringArray(arr);
-  for (let i=1; i<result.length; i++) {
+  for (let i=0; i<result.length; i++) {
     text += parseInt(result[i], 2) + ",";
-    text += i%36==0?"\n":"";
+    text += (i+1)%36==0?"\n":"";
   }
-  text += "\n};"
+  text += "};"
   document.getElementById("output").value = text;
 }
 
@@ -296,7 +296,17 @@ function drawArray() {
       h++;
     }
     let str = arr[i].toString(2);
+    let zero = "";
+    if (str.length < 8) {
+      for (let i=0;i<8-str.length;i++){
+        zero += "0"
+      }
+      str = zero + str;
+    }
+    
     let bit = str.match(/.{3}/g)
+    console.log(bit);
+    console.log(str);
     
     color_f = bitColorCheck(bit[0]);
     color_b = bitColorCheck(bit[1]);
