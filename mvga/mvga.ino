@@ -1,7 +1,6 @@
 // 1pxの色を2bitで表現している つまり一回の通信で4px分のデータを送信することができる。
 // 1pxの色を3bitで表現するようにすればいいってことだよなぁ！？これ、1.5倍メモリを消費するってことか
 // 白111　赤100 緑 010 青 001
-// 前か後の2bitは捨てるしかないかな？ 2pxしか送れない 00100111 このデータを送ったとして赤白って2pxのデータが渡せる。
 #define HSYNCPIN 3
 #define VSYNCPIN 9
 #define COLORRED 7
@@ -9,14 +8,12 @@
 #define COLORBLUE 5
 #define VGAX_HEIGHT 50
 #define VGAX_BWIDTH 36
-// #define VGAX_WIDTH (VGAX_BWIDTH*8) //number of pixels in a row
 #define VGAX_BSIZE (VGAX_BWIDTH*VGAX_HEIGHT) //size of framebuffer in bytes
-// #define VGAX_SIZE (VGAX_WIDTH*VGAX_HEIGHT) //size of framebuffer in pixels
 #define IMG_PIRATE_BWIDTH 36
 #define IMG_PIRATE_HEIGHT 50
 #define SKIPLINES 50
 
-const unsigned char img_pirate_data[IMG_PIRATE_HEIGHT*IMG_PIRATE_BWIDTH] PROGMEM={
+const unsigned char img_one[IMG_PIRATE_HEIGHT*IMG_PIRATE_BWIDTH] PROGMEM={
 64,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,64,63,63,63,63,63,63,
 41,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
 64,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
@@ -67,7 +64,7 @@ const unsigned char img_pirate_data[IMG_PIRATE_HEIGHT*IMG_PIRATE_BWIDTH] PROGMEM
 63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
 63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
 };
-const unsigned char img_unko[IMG_PIRATE_HEIGHT*IMG_PIRATE_BWIDTH] PROGMEM={
+const unsigned char img_two[IMG_PIRATE_HEIGHT*IMG_PIRATE_BWIDTH] PROGMEM={
 144,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,
 240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,
 240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,
@@ -134,13 +131,6 @@ ISR(TIMER1_OVF_vect) {
 }
 //HSYNC interrupt
 ISR(TIMER2_OVF_vect) {
-  /*
-  NOTE: I prefer to generate the line here, inside the interrupt.
-  Gammon's code generate the line pixels inside main().
-  My versin generate the signal using only interrupts, so inside main() function
-  you can do anything you want. Your code will be interrupted when VGA signal
-  needs to be generated
-  */
   //generate audio modulation. around 15 clocks
   asm volatile(                                   //4c to load Z and Y
     "      ld r16, z                        \n\t" //c1 r16=afreq
@@ -203,22 +193,6 @@ ISR(TIMER2_OVF_vect) {
       [toffset] "i" ((uint8_t)DEJITTER_OFFSET),
       [tsync] "i" ((uint8_t)DEJITTER_SYNC)
     : "r30", "r31", "r16", "r17");
-    /*
-    Output all pixels.
-
-    NOTE: My trick here is to unpack 4 pixels and shift them before writing to
-    PORTD.
-
-    Pixels are packed as 0b11223344 because the first pixel write have no time
-    to perform a shift (ld, out) and must be prealigned to the two upper bits 
-    of PORTD, where the two wires of the VGA DSUB are connected. The second, 
-    the third and the forth pixels are shifted left using mul opcode instead 
-    of a left shift opcode. Shift opcodes are slow and can shift only 1 bit at
-    a time, using 1 clock cycle. mul is faster.
-
-    Instead of using a loop i use the .rept assembler directive to generate an 
-    unrolled loop of 30 iterations.
-    */
     // r20とかには1byte入る
     // r0はr16に連動している
     //64で16赤,0緑
@@ -232,7 +206,7 @@ ISR(TIMER2_OVF_vect) {
     */
     asm volatile (
       "    ldi r20, 8       \n\t" //const for <<2bit r20に定数4を転送 
-      ".rept 36             \n\t" //output 4 pixels for each iteration 30*4=120
+      ".rept 36             \n\t" //output 2 pixels for each iteration 30*4=120
       "    ld r16, Z+       \n\t" // ld:１バイトのデータメモリを汎用レジスタに転送。 
                                   // Zはメモリの番地を指定している？
                                   // 事後増加付きZﾚｼﾞｽﾀ間接での取得 	Rd ← (Z), Z ← Z + 1
@@ -251,9 +225,7 @@ ISR(TIMER2_OVF_vect) {
     : [port] "I" (_SFR_IO_ADDR(PORTD)), // ポートD (デジタルピン0から7) // 入力オペランド　[マクロ名2] "制約" (変数名2)
       "z" "I" (/*rline*/(byte*)vgaxfb + rlinecnt*VGAX_BWIDTH)// vgaxfb[VGAX_HEIGHT(60)*VGAX_BWIDTH(30)], rlinecnt*VGAX_BWIDTH 
     : "r16", "r17", "r20", "r21", "memory");
-    // VGAX_BWIDTH=30
-    // rlinecntは0から増えていく？
-    //Serial.println(rlinecnt*VGAX_BWIDTH);
+    // rlinecntは0から増えていく
 
     //increment framebuffer line counter after 6 VGA lines
     #if defined(__AVR_ATmega2560__) && defined(ATMEGA2560_MAXRES)
@@ -264,7 +236,6 @@ ISR(TIMER2_OVF_vect) {
     if (++aline==CLONED_LINES) { 
       aline=-1;
       rlinecnt++;
-    } else {
     }
   } 
 }
@@ -311,7 +282,7 @@ void copy(byte *src) {
 void setup() {
   Serial.begin(9600);
   begin();
-  copy((byte*)img_pirate_data);
+  copy((byte*)img_one);
 }
 
 void loop() {
@@ -322,7 +293,7 @@ void loop() {
   if(cnt>=160)
     cnt=0;
   if (cnt>80)
-    copy((byte*)img_unko);
+    copy((byte*)img_two);
   else
-    copy((byte*)img_pirate_data);
+    copy((byte*)img_one);
 }
