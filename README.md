@@ -1,4 +1,4 @@
-# VGA出力を三原色を使うようにしたい
+# VGA出力で三原色を使うようにしたい
 ![VGA](doc/vga.png)
 
 https://github.com/smaffer/vgax
