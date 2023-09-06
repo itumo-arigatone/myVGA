@@ -19,3 +19,5 @@ VGAXライブラリを解読して自分なりに作成。
 ### おまけ
 create_dot.htmlを使って簡単にドット絵を作成することができます。
 絵を描いた後、大量の数値配列が生成されるので、それをコードにコピペすると良いです。
+
+https://www.instagram.com/reel/CUDSD_kBIl1/?igshid=MzRlODBiNWFlZA==
